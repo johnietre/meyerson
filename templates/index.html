@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en-US">
+
+<head>
+  <title>Meyerson</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue@3"></script>
+  <link rel="stylesheet" href="static/css/index.css">
+  <link rel="stylesheet" href="static/css/accordion.css">
+  <script src="static/js/index.js" type="module" defer></script>
+  <script src="static/js/accordion.js" defer></script>
+  <!--<script defer>Vue.createApp(app).mount("#app");</script>-->
+</head>
+
+<body>
+  <div id="app">
+    <h1 class="center-text">Meyerson</h1>
+
+    <div id="main">
+
+      <div id="connect-div">
+        <input type="text" placeholder="Connect To" v-model="connectAddr">
+        <br>
+        <button v-if="connectedToOther" @click="connectToOther">Connect</button>
+        <button v-else @click="disconnectFromOther">Disconnect</button>
+      </div>
+
+      <details class="center-text">
+        <summary>Help</summary>
+        <p>
+        <b>Stdout/stderr Filenames</b>
+        <p style="text-align:left">
+        <br />
+        "-" means the file is named process[num]-std[out/err].txt where [num] is the process number and [out/err] depends on whether the output is stdout or stderr.
+        <br />
+        "%" means the file is named process[name]-std[out/err].txt where [name] is the process name.
+        <br />
+        If the filename is blank, the output isn't captured.
+        </p>
+        </p>
+      </details>
+      <div style="marign-bottom:5px">
+        <button @click="startNewProc" v-if="!editing">New Process</button>
+        <button @click="editing=false" v-else>Cancel</button>
+      </div>
+      <div id="new-proc-div" v-if="editing" style="margin-bottom:5px">
+        <div>
+          <label for="name">Name:</label>
+          <input type="text" name="name" v-model="proc.name"/>
+        </div>
+
+        <div>
+          <label for="program">Program:</label>
+          <input type="text" name="program" v-model="proc.program" />
+        </div>
+
+        <div>
+          <p style="margin:none">Args:</p>
+          <button @click="proc.args.push('')">New Arg</button>
+          <div v-for="(arg, i) in proc.args">
+            <input type="text" v-model="proc.args[i]" />
+            <button @click="proc.args.splice(i, 1)">X</button>
+          </div>
+        </div>
+
+        <div>
+          <p style="margin:none">Env (KEY=VALUE):</p>
+          <button @click="proc.env.push('')">New Envvar</button>
+          <div v-for="(env, i) in proc.env">
+            <input type="text" v-model="proc.env[i]" />
+            <button @click="proc.env.splice(i, 1)">X</button>
+          </div>
+        </div>
+
+        <div>
+          <label for="dir">Dir:</label>
+          <input type="text" name="dir" v-model="proc.dir" />
+        </div>
+
+        <div>
+          <label for="outFilename">Stdout Filename:</label>
+          <input type="text" name="outFilename" v-model="proc.outFilename" />
+        </div>
+
+        <div>
+          <label for="errFilename">Stderr Filename:</label>
+          <input type="text" name="errFilename" v-model="proc.errFilename" />
+        </div>
+
+        <div>
+          <button @click="addProc">Add</button>
+          <button @click="clearProc">Clear</button>
+        </div>
+      </div>
+      <div id="global-env-div" style="margin-bottom:5px">
+        <button
+          @click="showingGlobalEnv=!showingGlobalEnv"
+        >Show Global Env</button>
+        <div v-if="showingGlobalEnv">
+          <p v-for="ev in globalEnv">{{ev}}</p>
+        </div>
+      </div>
+      <div id="procs-div">
+        <div>
+          <button @click="refreshProcs">Refresh</button>
+          <button 
+            v-if="detailsShowing"
+            @click="collapseExpandDetails"
+          >Collapse All</button>
+          <button 
+            v-else
+            @click="collapseExpandDetails"
+          >Expand All</button>
+        </div>
+        <details v-for="proc in procs" class="center-text accordian-details">
+          <summary>
+            Process {{proc.num}} | {{proc.name}} | {{proc.status}}
+            <img src="static/assets/plus.svg" class="expand-icon" alt="Plus">
+          </summary>
+          <div class="accordion-content">
+          <p>
+          Program: {{proc.program}}
+          <br />
+          Dir: {{proc.dir}}
+          <br />
+          Args:<br />{{proc.args}}
+          <br />
+          <div v-if="proc.showingEnv==1">
+            <span @click="proc.showingEnv=2">Env</span>:<br />{{proc.env}}
+          </div>
+          <div v-else-if="proc.showingEnv==2">
+            <span @click="proc.showingEnv=0">Env</span>:<br />
+            <div class="env-div">
+              <p v-for="ev in proc.env">
+              {{ev}}
+              </p>
+            </div>
+          </div>
+          <div v-else>
+            <span @click="proc.showingEnv=1">Env</span>:<br />
+          </div>
+          <br />
+          <a 
+            v-if="proc.outFilename" target="_blank" :href="`/stdout/${proc.num}`"
+            >Stdout: {{proc.outFilename}}</a>
+          <br />
+          <a 
+            v-if="proc.errFilename" target="_blank" :href="`/stderr/${proc.num}`"
+            >Stderr: {{proc.errFilename}}</a>
+          </p>
+          <div class="buttons-div">
+            <div>
+              <button
+                @click="startProc(proc.num)"
+                :disabled="proc.status==Status.Running"
+              >Start</button>
+            </div>
+            <div>
+              <button 
+                @click="interruptProc(proc.num)"
+                :disabled="proc.status!=Status.Running"
+                >Interrupt</button>
+              <button
+                @click="killProc(proc.num)"
+                :disabled="proc.status!=Status.Running"
+              >Kill</button>
+            </div>
+            <!--
+            <div>
+              <button
+                @click="interruptRestartProc(proc.num)"
+                :disabled="proc.status!=Status.Running"
+                >Interrupt-Restart</button>
+              <button
+                @click="killRestartProc(proc.num)"
+                :disabled="proc.status!=Status.Running"
+              >Kill-Restart</button>
+            </div>
+            -->
+            <div>
+              <button @click="cloneProc(proc)">Clone</button>
+              <button @click="delProc(proc.num)">Delete</button>
+            </div>
+          </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

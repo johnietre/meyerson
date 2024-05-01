@@ -1,0 +1,16 @@
+{
+  "serverAddr": "",
+  "outDir": "",
+  "env": [],
+  "procs": [
+    {
+      "name": "MyProcess",
+      "program": "",
+      "args": [],
+      "env": [],
+      "outFilename": "",
+      "errFilename": "",
+      "delay": 0
+    }
+  ]
+}

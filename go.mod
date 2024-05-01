@@ -1,8 +1,8 @@
-module meyerson
+module github.com/johnietre/meyerson
 
-go 1.18
+go 1.22.1
 
 require (
-	github.com/johnietre/go-jmux v0.0.0-20220907222040-005d415867e7
-	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
+	github.com/BurntSushi/toml v1.3.2
+	golang.org/x/net v0.24.0
 )

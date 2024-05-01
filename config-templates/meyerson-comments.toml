@@ -1,0 +1,37 @@
+# The address to run the server on. If left blank, the server isn't started.
+server-addr = ""
+
+# Directory to put all output file in
+out-dir = ""
+
+# Key=value pairs of env to use for all procs (in addition to system the env
+# Only the first = is used, so this `key=value=1` has a key of "key" and
+# value of "value=1"
+env = []
+
+# The processes
+# Processes are looped through sequentially, so putting a delay on one will
+# cause the others to execute after that delay has passed as well
+[[proc]]
+# The name of the process
+name = "MyProcess"
+# The program to run
+program = ""
+# The args to pass to the program
+# Each element (arg) is passed as it's own string so passing multiple
+# arguments as one element (string) may lead to unexpected behavior
+args = []
+# Environment to pass to the process
+env = []
+# The path of the stdout output file
+# If it is "-", the process number (index + 1) is used (e.g., this would
+# be "process1-stdout.txt")
+# If it is "%", the process name is used (e.g., this would be
+# "MyProcess-stdout.txt")
+# If it is left blank or left out entirely, the stdout output is
+# discarded
+out-filename = ""
+# Same as outFilename but for stderr output
+err-filename = ""
+# Time in seconds to wait before starting this process
+delay = 0

@@ -1,0 +1,12 @@
+server-addr = ""
+out-dir = ""
+env = []
+
+[[proc]]
+name = "MyProcess"
+program = ""
+args = []
+env = []
+out-filename = ""
+err-filename = ""
+delay = 0

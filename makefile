@@ -1,4 +1,4 @@
-bin/meyerson: *.go
-	go build -o $@ $^
+.PHONY: meyerson
 
-meyerson: bin/meyerson
+meyerson:
+	go build -o bin/$@ cmd/meyerson/*.go
